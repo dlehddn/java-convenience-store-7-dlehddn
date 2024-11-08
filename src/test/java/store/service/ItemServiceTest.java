@@ -31,7 +31,7 @@ class ItemServiceTest {
 
     @Test
     void 존재하지_않는_상품명은_예외가_발생한다() {
-        //given
+        //given을
         List<Order> orders = new ArrayList<>();
         orders.add(new Order("과자", 10));
 
