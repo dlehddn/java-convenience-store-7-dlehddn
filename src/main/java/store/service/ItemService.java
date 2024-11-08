@@ -61,6 +61,9 @@ public class ItemService {
 
     public int calculateOriginPayCount(Order order) {
         int promotionStock = itemRepository.getPromotionRemainQuantity(order.getItemName());
+        if (promotionStock == 0) {
+            return 0;
+        }
         Item item = itemRepository.getItemFromPromotions(order.getItemName()).get();
         Promotion promotion = item.getPromotion();
 
