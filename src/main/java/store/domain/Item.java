@@ -1,29 +1,24 @@
 package store.domain;
 
-import java.util.Objects;
 
 public class Item {
     private final String name;
     private final int price;
     private final Promotion promotion;
+    private int quantity;
 
-    public Item(String name, int price, Promotion promotion) {
+    public Item(String name, int price, Promotion promotion, int quantity) {
         this.name = name;
         this.price = price;
         this.promotion = promotion;
+        this.quantity = quantity;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Item item = (Item) o;
-        return price == item.price && Objects.equals(name, item.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, price);
+    public Item(Item item) {
+        this.name = item.getName();
+        this.price = item.getPrice();
+        this.promotion = item.getPromotion();
+        this.quantity = item.getQuantity();
     }
 
     public String getName() {
@@ -36,5 +31,9 @@ public class Item {
 
     public Promotion getPromotion() {
         return promotion;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 }

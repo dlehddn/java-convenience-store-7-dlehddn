@@ -11,4 +11,8 @@ public class OutputView {
         System.out.println(SHOW_INVENTORY);
         System.out.println(OutputMaker.inventoryStatus(items));
     }
+
+    public void printErrorMessage(IllegalArgumentException e) {
+        System.out.println("[ERROR] " + e.getMessage());
+    }
 }

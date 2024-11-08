@@ -33,8 +33,13 @@ public class ItemInitializer {
             if (!fields[3].equals("null")) {
                 promotion = promotionRepository.get(fields[3]);
             }
-            Item item = new Item(fields[0], Integer.valueOf(fields[1]), promotion);
-            itemRepository.add(item, Integer.valueOf(fields[2]));
+            Item item = new Item(
+                    fields[0],
+                    Integer.valueOf(fields[1]),
+                    promotion,
+                    Integer.valueOf(fields[2])
+            );
+            itemRepository.save(item);
         }
     }
 }
