@@ -21,6 +21,7 @@ public class ItemInitializer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        itemRepository.addBlankRegularItems();
     }
 
     private static void addItems(ItemRepository itemRepository,

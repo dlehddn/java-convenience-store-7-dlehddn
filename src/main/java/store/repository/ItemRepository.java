@@ -1,6 +1,7 @@
 package store.repository;
 
 import store.domain.Item;
+import store.domain.Order;
 import store.dto.ItemDto;
 
 import java.util.HashMap;
@@ -18,6 +19,15 @@ public class ItemRepository {
     public ItemRepository() {
         this.promotionItems = new HashMap<>();
         this.regularItems = new HashMap<>();
+    }
+
+    public void addBlankRegularItems() {
+        for (String itemName : promotionItems.keySet()) {
+            if (!regularItems.containsKey(itemName)) {
+                Item item = promotionItems.get(itemName);
+                regularItems.put(itemName, new Item(itemName, item.getPrice(), null, 0));
+            }
+        }
     }
 
     public void save(Item item) {
@@ -79,5 +89,26 @@ public class ItemRepository {
                 .collect(Collectors.toList());
     }
 
+    public int updatePromotionQuantity(Order order) {
+        int buyQuantity = order.getQuantity();
+        Item item = promotionItems.getOrDefault(order.getItemName(), new Item("default", 0, null, 0));
+        int maxBuyQuantity = Math.min(item.getQuantity(), buyQuantity);
+        item.setQuantity(item.getQuantity() - maxBuyQuantity);
+        return maxBuyQuantity;
+    }
 
+    public int updateRegularQuantity(Order order) {
+        Item item = regularItems.get(order.getItemName());
+        item.setQuantity(item.getQuantity() - order.getQuantity());
+        return order.getQuantity();
+    }
+
+    public int getPrice(String itemName) {
+        Item regularItem = regularItems.get(itemName);
+        Item promotionItem = promotionItems.get(itemName);
+        if (regularItem != null) {
+            return regularItem.getPrice();
+        }
+        return promotionItem.getPrice();
+    }
 }
