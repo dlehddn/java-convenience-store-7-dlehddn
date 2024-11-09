@@ -5,7 +5,7 @@ import store.dto.ItemDto;
 import java.util.List;
 
 public class OutputMaker {
-    private static final String ITEM_FORMAT = "- %s %s %s %s";
+    private static final String ITEM_FORMAT = "- %s %,d원 %s %s";
 
     public static String inventoryStatus(List<ItemDto> items) {
         StringBuilder sb = new StringBuilder();
@@ -16,7 +16,7 @@ public class OutputMaker {
     }
 
     private static String makeInformation(ItemDto item) {
-        return String.format(ITEM_FORMAT, item.itemName(), item.price() + "원",
+        return String.format(ITEM_FORMAT, item.itemName(), item.price(),
                 makeQuantity(item.quantity()), makePromotionName(item.promotionName()));
     }
 
