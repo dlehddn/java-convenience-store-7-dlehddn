@@ -47,7 +47,7 @@ public class ItemService {
         }
     }
 
-    public boolean canApplyPromotion(Order order) {
+    public boolean canApplyFreeGift(Order order) {
         int promotionStock = itemRepository.getPromotionRemainQuantity(order.getItemName());
         if (promotionStock == 0) {
             return false;
@@ -57,9 +57,7 @@ public class ItemService {
         if (!isPromotionDate(promotion)) {
             return false;
         }
-
-        if (order.getQuantity() % (promotion.getBuy() + promotion.getGet()) == promotion.getBuy()
-                && promotionStock > order.getQuantity()) {
+        if (meetsFreeGiftRequirements(order, promotionStock, promotion)) {
             return true;
         }
         return false;
@@ -70,10 +68,8 @@ public class ItemService {
         if (promotionStock == 0) {
             return 0;
         }
-
         Item item = itemRepository.getItemFromPromotions(order.getItemName()).get();
         Promotion promotion = item.getPromotion();
-
         if (promotionStock > 0 && !isPromotionDate(promotion)) {
             return 0;
         }
@@ -82,14 +78,46 @@ public class ItemService {
         if ((promotion.getGet() + promotion.getBuy() > promotionStock)) {
             return order.getQuantity();
         }
-        int orderMaxPromotion = order.getQuantity() / (promotion.getBuy() + promotion.getGet()) * (promotion.getBuy() + promotion.getGet());
         //Case2. 프로모션 재고 중에서 처리 가능
+        int orderMaxPromotion = order.getQuantity() / (promotion.getBuy() + promotion.getGet()) * (promotion.getBuy() + promotion.getGet());
         if (orderMaxPromotion <= promotionStock) {
             return order.getQuantity() - orderMaxPromotion;
         }
         //Case3. 프로모션 + 일반 상품으로 처리해야하는 경우
         int maxPromotion = promotionStock / (promotion.getBuy() + promotion.getGet()) * (promotion.getBuy() + promotion.getGet());
         return order.getQuantity() - maxPromotion;
+    }
+
+    public OrderResult order(Order order, final int originPayCount) {
+        int promotionBuyCount = itemRepository.updatePromotionQuantity(order);
+        int regularBuyCount = itemRepository.updateRegularQuantity(new Order(order.getItemName(), order.getQuantity() - promotionBuyCount));
+        int freeCount = calculateFreeCount(order, promotionBuyCount);
+        return new OrderResult(
+                order.getItemName(),
+                itemRepository.getPrice(order.getItemName()),
+                promotionBuyCount,
+                regularBuyCount,
+                originPayCount,
+                freeCount
+        );
+    }
+
+    private int calculateFreeCount(Order order, int promotionBuyCount) {
+        int freeCount = 0;
+        if (promotionBuyCount > 0) {
+            Item item = itemRepository.getItemFromPromotions(order.getItemName()).get();
+            Promotion promotion = promotionRepository.get(item.getPromotion().getName());
+            freeCount = promotionBuyCount / (promotion.getBuy() + promotion.getGet());
+            if (!isPromotionDate(promotion)) {
+                freeCount = 0;
+            }
+        }
+        return freeCount;
+    }
+
+    private boolean meetsFreeGiftRequirements(Order order, int promotionStock, Promotion promotion) {
+        return order.getQuantity() % (promotion.getBuy() + promotion.getGet()) == promotion.getBuy()
+                && promotionStock > order.getQuantity();
     }
 
     private boolean isPromotionDate(Promotion promotion) {
@@ -102,29 +130,6 @@ public class ItemService {
         LocalDate endDate = promotion.getEnd_date();
         return (now.isEqual(startDate) || now.isAfter(startDate))
                 && (now.isEqual(endDate) || now.isBefore(endDate));
-    }
-
-
-    public OrderResult order(Order order, final int originPayCount) {
-        int promotionBuyCount = itemRepository.updatePromotionQuantity(order);
-        int regularBuyCount = itemRepository.updateRegularQuantity(new Order(order.getItemName(), order.getQuantity() - promotionBuyCount));
-        int freeCount = 0;
-        if (promotionBuyCount > 0) {
-            Item item = itemRepository.getItemFromPromotions(order.getItemName()).get();
-            Promotion promotion = promotionRepository.get(item.getPromotion().getName());
-            freeCount = promotionBuyCount / (promotion.getBuy() + promotion.getGet());
-            if (!isPromotionDate(promotion)) {
-                freeCount = 0;
-            }
-        }
-        return new OrderResult(
-                order.getItemName(),
-                itemRepository.getPrice(order.getItemName()),
-                promotionBuyCount,
-                regularBuyCount,
-                originPayCount,
-                freeCount
-        );
     }
 
     private List<ItemDto> makeInventoryStatus(List<ItemDto> promotionItems,

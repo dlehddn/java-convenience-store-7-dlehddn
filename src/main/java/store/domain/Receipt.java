@@ -7,6 +7,12 @@ import java.util.List;
 public class Receipt {
     private final List<OrderResult> orderResults;
     private final Membership membership;
+    private static final String HEADER_FORMAT = "%-10s %5s %10s\n";
+    private static final String ITEM_FORMAT = "%-10s %5d %,10d\n";
+    private static final String FREE_FORMAT = "%-10s %5d\n";
+    private static final String DISCOUNT_FORMAT = "%-15s %10s\n";
+    private static final String PAY_FORMAT = "%-15s %,10d\n";
+    private static final String LINE_CHANGE = "\n";
 
     public Receipt(List<OrderResult> orderResults, Membership membership) {
         this.orderResults = orderResults;
@@ -15,8 +21,8 @@ public class Receipt {
 
     public String generate() {
         StringBuilder sb = new StringBuilder();
-        sb.append("===========W 편의점 ============").append("\n");
-        sb.append("상품명           ").append("수량").append("금액").append("\n");
+        sb.append("===========W 편의점 ============").append(LINE_CHANGE);
+        sb.append(String.format(HEADER_FORMAT, "상품명", "수량", "금액"));
         for (OrderResult orderResult : orderResults) {
             sb.append(makeItemBuyResult(orderResult));
         }
@@ -39,21 +45,21 @@ public class Receipt {
                     (orderResult.promotionPurchases() + orderResult.regularPurchases() - orderResult.freeCount());
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("내실돈                            ").append(String.format("%,d", totalPrice - membership.getDiscountAmount())).append("\n");
+        sb.append(String.format(PAY_FORMAT, "내실돈", totalPrice - membership.getDiscountAmount()));
         return sb.toString();
     }
 
     private String makeMemberShipResult(List<OrderResult> orderResults) {
-        if (!membership.isAvailable()) return "";
         for (OrderResult orderResult : orderResults) {
-            if (orderResult.freeCount() == 0) {
+            if (orderResult.freeCount() == 0 && membership.isAvailable()) {
                 int totalCount = orderResult.regularPurchases() + orderResult.promotionPurchases();
                 int totalPrice = orderResult.price() * totalCount;
                 membership.apply(totalPrice);
             }
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("멤버십할인                        ").append("-").append(String.format("%,d", membership.getDiscountAmount())).append("\n");
+        String discountAmount = "-" + membership.getDiscountAmount();
+        sb.append(String.format(DISCOUNT_FORMAT, "멤버십할인", discountAmount));
         return sb.toString();
     }
 
@@ -63,7 +69,8 @@ public class Receipt {
         for (OrderResult orderResult : orderResults) {
             totalDiscount += orderResult.freeCount() * orderResult.price();
         }
-        sb.append("행사할인                          ").append("-").append(String.format("%,d", totalDiscount)).append("\n");
+        String discountAmount = "-" + totalDiscount;
+        sb.append(String.format(DISCOUNT_FORMAT, "행사할인", discountAmount));
         return sb.toString();
     }
 
@@ -76,25 +83,20 @@ public class Receipt {
             totalPrice += tmp * orderResult.price();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("총구매액            ").append(totalCount + "        ").append(String.format("%,d", totalPrice)).append("\n");
+        sb.append(String.format(ITEM_FORMAT, "총구매액", totalCount, totalPrice));
         return sb.toString();
     }
 
     private String makeFreeItemResult(OrderResult orderResult) {
         StringBuilder sb = new StringBuilder();
-        if (orderResult.freeCount() != 0) {
-            sb.append(orderResult.itemName() + "            ").append(orderResult.freeCount()).append("\n");
-        }
+        sb.append(String.format(FREE_FORMAT, orderResult.itemName(), orderResult.freeCount()));
         return sb.toString();
     }
 
     private String makeItemBuyResult(OrderResult orderResult) {
         StringBuilder sb = new StringBuilder();
         int totalCount = orderResult.promotionPurchases() + orderResult.regularPurchases();
-        sb.append(orderResult.itemName() + "        ")
-                .append(totalCount).append("        ")
-                .append(totalCount * orderResult.price())
-                .append("\n");
+        sb.append(String.format(ITEM_FORMAT, orderResult.itemName(), totalCount, totalCount * orderResult.price()));
         return sb.toString();
     }
 }

@@ -1,5 +1,6 @@
 package store.view;
 
+import store.domain.Receipt;
 import store.dto.ItemDto;
 
 import java.util.List;
@@ -14,5 +15,9 @@ public class OutputView {
 
     public void printErrorMessage(IllegalArgumentException e) {
         System.out.println("[ERROR] " + e.getMessage());
+    }
+
+    public void printReceipt(String result) {
+        System.out.println(result);
     }
 }
