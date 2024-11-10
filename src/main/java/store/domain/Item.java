@@ -14,13 +14,6 @@ public class Item {
         this.quantity = quantity;
     }
 
-    public Item(Item item) {
-        this.name = item.getName();
-        this.price = item.getPrice();
-        this.promotion = item.getPromotion();
-        this.quantity = item.getQuantity();
-    }
-
     public String getName() {
         return name;
     }
