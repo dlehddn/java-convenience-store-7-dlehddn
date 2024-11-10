@@ -30,10 +30,7 @@ public class ItemInitializer {
         String line;
         while ((line = br.readLine()) != null) {
             String[] fields = line.split(",");
-            Promotion promotion = null;
-            if (!fields[3].equals("null")) {
-                promotion = promotionRepository.get(fields[3]);
-            }
+            Promotion promotion = getPromotion(promotionRepository, fields);
             Item item = new Item(
                     fields[0],
                     Integer.valueOf(fields[1]),
@@ -42,5 +39,13 @@ public class ItemInitializer {
             );
             itemRepository.save(item);
         }
+    }
+
+    private static Promotion getPromotion(PromotionRepository promotionRepository, String[] fields) {
+        Promotion promotion = null;
+        if (!fields[3].equals("null")) {
+            promotion = promotionRepository.get(fields[3]);
+        }
+        return promotion;
     }
 }
