@@ -1,12 +1,9 @@
 package store.service;
 
-import net.bytebuddy.matcher.FilterableList;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import store.common.error.ItemErrorMessage;
 import store.domain.Order;
@@ -18,7 +15,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ItemServiceTest {
     ItemService itemService;
@@ -31,7 +27,7 @@ class ItemServiceTest {
 
     @Test
     void 존재하지_않는_상품명은_예외가_발생한다() {
-        //given을
+        //given
         List<Order> orders = new ArrayList<>();
         orders.add(new Order("과자", 10));
 
@@ -59,7 +55,7 @@ class ItemServiceTest {
         Order order = new Order("콜라", 2);
 
         //when & then
-        assertThat(itemService.canApplyPromotion(order)).isTrue();
+        assertThat(itemService.canApplyFreeGift(order)).isTrue();
     }
 
     @ParameterizedTest
