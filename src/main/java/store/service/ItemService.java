@@ -73,7 +73,10 @@ public class ItemService {
         if (promotionStock > 0 && !isPromotionDate(promotion)) {
             return 0;
         }
+        return originPayCountOfThreeCase(order, promotionStock, promotion);
+    }
 
+    private static int originPayCountOfThreeCase(Order order, int promotionStock, Promotion promotion) {
         //Case1. All Regular
         if ((promotion.getGet() + promotion.getBuy() > promotionStock)) {
             return order.getQuantity();
