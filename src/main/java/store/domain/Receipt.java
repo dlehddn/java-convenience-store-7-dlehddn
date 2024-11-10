@@ -1,18 +1,12 @@
 package store.domain;
 
 import store.dto.OrderResult;
-
 import java.util.List;
+import static store.common.constants.ReceiptFormat.*;
 
 public class Receipt {
     private final List<OrderResult> orderResults;
     private final Membership membership;
-    private static final String HEADER_FORMAT = "%-10s %5s %10s\n";
-    private static final String ITEM_FORMAT = "%-10s %5d %,10d\n";
-    private static final String FREE_FORMAT = "%-10s %5d\n";
-    private static final String DISCOUNT_FORMAT = "%-15s %10s\n";
-    private static final String PAY_FORMAT = "%-15s %,10d\n";
-    private static final String LINE_CHANGE = "\n";
 
     public Receipt(List<OrderResult> orderResults, Membership membership) {
         this.orderResults = orderResults;
@@ -21,21 +15,33 @@ public class Receipt {
 
     public String generate() {
         StringBuilder sb = new StringBuilder();
-        sb.append("===========W 편의점 ============").append(LINE_CHANGE);
-        sb.append(String.format(HEADER_FORMAT, "상품명", "수량", "금액"));
-        for (OrderResult orderResult : orderResults) {
-            sb.append(makeItemBuyResult(orderResult));
-        }
-        sb.append("===========증    정 ============").append("\n");
-        for (OrderResult orderResult : orderResults) {
-            sb.append(makeFreeItemResult(orderResult));
-        }
-        sb.append("===============================").append("\n");
+        writeAllBuyingItems(sb);
+        writeFreeGiftItems(sb);
+        writePayInformation(sb);
+        return sb.toString();
+    }
+
+    private void writePayInformation(StringBuilder sb) {
         sb.append(makeTotalPriceResult(orderResults));
         sb.append(makeFreeDiscountResult(orderResults));
         sb.append(makeMemberShipResult(orderResults));
         sb.append(makeFinalPrice(orderResults));
-        return sb.toString();
+    }
+
+    private void writeFreeGiftItems(StringBuilder sb) {
+        sb.append("===========증    정 ============").append(LINE_CHANGE.getFormat());
+        for (OrderResult orderResult : orderResults) {
+            sb.append(makeFreeItemResult(orderResult));
+        }
+        sb.append("===============================").append(LINE_CHANGE.getFormat());
+    }
+
+    private void writeAllBuyingItems(StringBuilder sb) {
+        sb.append("===========W 편의점 ============").append(LINE_CHANGE.getFormat());
+        sb.append(String.format(HEADER_FORMAT.getFormat(), "상품명", "수량", "금액"));
+        for (OrderResult orderResult : orderResults) {
+            sb.append(makeItemBuyResult(orderResult));
+        }
     }
 
     private String makeFinalPrice(List<OrderResult> orderResults) {
@@ -45,7 +51,7 @@ public class Receipt {
                     (orderResult.promotionPurchases() + orderResult.regularPurchases() - orderResult.freeCount());
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format(PAY_FORMAT, "내실돈", totalPrice - membership.getDiscountAmount()));
+        sb.append(String.format(PAY_FORMAT.getFormat(), "내실돈", totalPrice - membership.getDiscountAmount()));
         return sb.toString();
     }
 
@@ -59,7 +65,7 @@ public class Receipt {
         }
         StringBuilder sb = new StringBuilder();
         String discountAmount = "-" + membership.getDiscountAmount();
-        sb.append(String.format(DISCOUNT_FORMAT, "멤버십할인", discountAmount));
+        sb.append(String.format(DISCOUNT_FORMAT.getFormat(), "멤버십할인", discountAmount));
         return sb.toString();
     }
 
@@ -70,7 +76,7 @@ public class Receipt {
             totalDiscount += orderResult.freeCount() * orderResult.price();
         }
         String discountAmount = "-" + totalDiscount;
-        sb.append(String.format(DISCOUNT_FORMAT, "행사할인", discountAmount));
+        sb.append(String.format(DISCOUNT_FORMAT.getFormat(), "행사할인", discountAmount));
         return sb.toString();
     }
 
@@ -83,20 +89,20 @@ public class Receipt {
             totalPrice += tmp * orderResult.price();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format(ITEM_FORMAT, "총구매액", totalCount, totalPrice));
+        sb.append(String.format(ITEM_FORMAT.getFormat(), "총구매액", totalCount, totalPrice));
         return sb.toString();
     }
 
     private String makeFreeItemResult(OrderResult orderResult) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format(FREE_FORMAT, orderResult.itemName(), orderResult.freeCount()));
+        sb.append(String.format(FREE_FORMAT.getFormat(), orderResult.itemName(), orderResult.freeCount()));
         return sb.toString();
     }
 
     private String makeItemBuyResult(OrderResult orderResult) {
         StringBuilder sb = new StringBuilder();
         int totalCount = orderResult.promotionPurchases() + orderResult.regularPurchases();
-        sb.append(String.format(ITEM_FORMAT, orderResult.itemName(), totalCount, totalCount * orderResult.price()));
+        sb.append(String.format(ITEM_FORMAT.getFormat(), orderResult.itemName(), totalCount, totalCount * orderResult.price()));
         return sb.toString();
     }
 }
